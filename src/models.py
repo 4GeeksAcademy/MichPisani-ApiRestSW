@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean , DateTime, ForeignKey, func
+from sqlalchemy import String, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
@@ -16,7 +16,8 @@ class User(db.Model):
     lastname: Mapped[str] = mapped_column(String(50), nullable= False)
     subscription_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
-
+    favourites=relationship("Favourites", back_populates="user", cascade = "all, delete-orphan")
+    # Donde hay que poner el cascade?
     def serialize(self):
         return {
             "id": self.id,
@@ -27,7 +28,13 @@ class User(db.Model):
             "subscription_date": self.subscription_date
         }
     
-    favourites=relationship("Favourites", back_populates="user")
+    #Por qué se crea esto en user y no en favourites?
+    def serialize_favourites(self):
+        return {
+            "user_id": self.id,
+            "favourites": [favourite.serialize_all() for favourite in self.favourites]
+        }
+    
 
 class Characters(db.Model):
     __tablename__="character" 
@@ -43,7 +50,7 @@ class Characters(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "gender": self.lastname,
+            "gender": self.gender,
             "birth_year": self.birth_year,
             "height": self.height,
             "eye_color":self.eye_color
@@ -95,26 +102,25 @@ class Planets (db.Model):
 
 class Favourites (db.Model):
     __tablename__="favourite" 
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(db.ForeignKey("user.id"), primary_key=True, nullable=False)
+    #id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(db.ForeignKey("user.id"), unique=True, nullable=False)
     planet_id: Mapped[int] = mapped_column(db.ForeignKey("planet.id"), nullable=True)
     vehicle_id: Mapped[int] = mapped_column(db.ForeignKey("vehicle.id"), nullable=True)
     character_id: Mapped[int] = mapped_column(db.ForeignKey("character.id"), nullable=True)
 
-    def serialize(self):
+    def serialize_all(self):
         return {
-            "id": self.id,
-            "name": self.name,
-            "climate": self.climate,
-            "diameter": self.diameter,
-            "population": self.population,
+            #"id":self.id Es necesario???
+            "planet_id": self.planet_id,
+            "vehicle_id": self.vehicle_id,
+            "character_id": self.character_id,
         }
     
-    user=relationship("User", back_populates="favourite")
-    planet=relationship("Planets", back_populates="favourite")
-    vehicle=relationship("Vehicles", back_populates="favourite")
-    character=relationship("Characters", back_populates="favourite")
+
+    user=relationship("User", back_populates="favourites")
+    planet=relationship("Planets", back_populates="favourites")
+    vehicle=relationship("Vehicles", back_populates="favourites")
+    character=relationship("Characters", back_populates="favourites")
 
 
     
