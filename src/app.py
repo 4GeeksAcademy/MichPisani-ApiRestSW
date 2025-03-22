@@ -38,7 +38,7 @@ def sitemap():
     return generate_sitemap(app)
 
 # Crear un nuevo usuario
-@app.route('/user', methods=['POST'])
+@app.route('/user', methods=['POST']) #FUNCIONA
 def create_user():
     request_data = request.get_json()
 
@@ -71,6 +71,7 @@ def create_user():
 
 
 # Listar todos los registros de characters en la base de datos.
+#
 @app.route('/characters', methods=['GET'])
 def get_all_characters():
 

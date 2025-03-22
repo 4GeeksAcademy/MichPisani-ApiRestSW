@@ -17,7 +17,7 @@ class User(db.Model):
     subscription_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
     favourites=relationship("Favourites", back_populates="user", cascade = "all, delete-orphan")
-    # Donde hay que poner el cascade?
+    # Donde hay que poner el cascade --> Ponerlo en el padre
     def serialize(self):
         return {
             "id": self.id,
@@ -102,15 +102,15 @@ class Planets (db.Model):
 
 class Favourites (db.Model):
     __tablename__="favourite" 
-    #id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(db.ForeignKey("user.id"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True) #Quitar unique de user_id y añadir autoincrement
+    user_id: Mapped[int] = mapped_column(db.ForeignKey("user.id"), nullable=False)
     planet_id: Mapped[int] = mapped_column(db.ForeignKey("planet.id"), nullable=True)
     vehicle_id: Mapped[int] = mapped_column(db.ForeignKey("vehicle.id"), nullable=True)
     character_id: Mapped[int] = mapped_column(db.ForeignKey("character.id"), nullable=True)
 
     def serialize_all(self):
         return {
-            #"id":self.id Es necesario???
+            "id":self.id,
             "planet_id": self.planet_id,
             "vehicle_id": self.vehicle_id,
             "character_id": self.character_id,
